@@ -1,0 +1,104 @@
+dpctl add-flow tcp:127.0.0.1:6634 in_port=1,actions=output:2
+sudo ovs-vsctl list-ports br0
+
+#list openflow port
+sudo ovs-ofctl show br0
+
+#add flow
+sudo ovs-ofctl add-flow br0 in_port=1,actions=output:2
+
+#change ip address
+sudo ip addr add 192.168.50.5 dev eth1
+
+
+
+########################################################################
+Slice 1
+#######################################################################
+#ovs1
+sudo ovs-vsctl add-br br0
+sudo ifconfig eth2 0
+sudo ifconfig eth3 0
+sudo ovs-vsctl add-port br0 eth2
+sudo ovs-vsctl add-port br0 eth3
+sudo ovs-vsctl set bridge br0 other-config:datapath-id=0000000000000001
+sudo ovs-vsctl set-controller br0 tcp:192.122.236.105:6633
+sudo ovs-vsctl show
+sudo ovs-vsctl find bridge datapath_id=0000000000000001
+
+
+#ovs2
+sudo ovs-vsctl add-br br0
+sudo ifconfig eth1 0
+sudo ifconfig eth3 0
+sudo ovs-vsctl add-port br0 eth1
+sudo ovs-vsctl add-port br0 eth3
+sudo ovs-vsctl set bridge br0 other-config:datapath-id=0000000000000002
+sudo ovs-vsctl set-controller br0 tcp:192.122.236.105:6633
+sudo ovs-vsctl show
+sudo ovs-vsctl find bridge datapath_id=0000000000000002
+
+#ovs4
+sudo ovs-vsctl add-br br0
+sudo ifconfig eth3 0
+sudo ifconfig eth4 0
+sudo ovs-vsctl add-port br0 eth3
+sudo ovs-vsctl add-port br0 eth4
+sudo ovs-vsctl set bridge br0 other-config:datapath-id=0000000000000004
+sudo ovs-vsctl set-controller br0 tcp:192.122.236.105:6633
+sudo ovs-vsctl show
+sudo ovs-vsctl find bridge datapath_id=0000000000000004
+
+########################################################################
+Slice 2
+#######################################################################
+#ovs1
+sudo ovs-vsctl add-br br0
+sudo ifconfig eth1 0
+sudo ifconfig eth3 0
+sudo ovs-vsctl add-port br0 eth1
+sudo ovs-vsctl add-port br0 eth3
+sudo ovs-vsctl set bridge br0 other-config:datapath-id=0000000000000005
+sudo ovs-vsctl set-controller br0 tcp:192.122.236.105:6633
+sudo ovs-vsctl show
+sudo ovs-vsctl find bridge datapath_id=0000000000000005
+
+
+#ovs2
+sudo ovs-vsctl add-br br0
+sudo ifconfig eth2 0
+sudo ifconfig eth3 0
+sudo ovs-vsctl add-port br0 eth2
+sudo ovs-vsctl add-port br0 eth3
+sudo ovs-vsctl set bridge br0 other-config:datapath-id=0000000000000006
+sudo ovs-vsctl set-controller br0 tcp:192.122.236.105:6633
+sudo ovs-vsctl show
+sudo ovs-vsctl find bridge datapath_id=0000000000000006
+
+#ovs4
+sudo ovs-vsctl add-br br0
+sudo ifconfig eth3 0
+sudo ifconfig eth4 0
+sudo ovs-vsctl add-port br0 eth3
+sudo ovs-vsctl add-port br0 eth4
+sudo ovs-vsctl set bridge br0 other-config:datapath-id=0000000000000008
+sudo ovs-vsctl set-controller br0 tcp:192.122.236.105:6633
+sudo ovs-vsctl show
+sudo ovs-vsctl find bridge datapath_id=0000000000000008
+
+sudo ovs-vsctl set-controller br0 tcp:127.0.0.1:6633
+sudo ovs-vsctl set-controller br0 tcp:72.36.65.85:6633
+
+sudo ovs-vsctl del-br br0
+
+sudo ovs-vsctl add-br br0
+sudo ifconfig eth1 0
+sudo ifconfig eth2 0
+sudo ifconfig eth3 0
+sudo ovs-vsctl add-port br0 eth1
+sudo ovs-vsctl add-port br0 eth2
+sudo ovs-vsctl add-port br0 eth3
+sudo ovs-vsctl set bridge br0 other-config:datapath-id=0000000000000010
+sudo ovs-vsctl set-controller br0 tcp:192.122.236.105:6633
+sudo ovs-vsctl show
+sudo ovs-vsctl find bridge datapath_id=0000000000000010

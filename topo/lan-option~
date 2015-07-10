@@ -1,0 +1,13 @@
+{
+ "geni_sharelan_lanname": "link-1",
+ "geni_sharelan_token": "host1lan"
+},
+{
+ "geni_sharelan_lanname": "link-0",
+ "geni_sharelan_token": "ovslan"
+},
+{
+ "geni_sharelan_lanname": "link-6",
+ "geni_sharelan_token": "hosttwolan"
+}
+
