@@ -6,7 +6,7 @@ sudo ovs-vsctl set-fail-mode br0 secure
 sudo ovs-vsctl add-port br0 eth1
 sudo ovs-vsctl add-port br0 eth2
 sudo ovs-vsctl set bridge br0 other-config:datapath-id=0000000000000001
-sudo ovs-vsctl set-controller br0 tcp:143.215.216.214:6633
+sudo ovs-vsctl set-controller br0 tcp:128.163.232.85:6633
 sudo ovs-vsctl show
 sudo ovs-vsctl find bridge datapath_id=0000000000000001
 
@@ -17,7 +17,7 @@ sudo ifconfig eth2 0
 sudo ovs-vsctl add-port br0 eth1
 sudo ovs-vsctl add-port br0 eth2
 sudo ovs-vsctl set bridge br0 other-config:datapath-id=0000000000000002
-sudo ovs-vsctl set-controller br0 tcp:143.215.216.214:6633
+sudo ovs-vsctl set-controller br0 tcp:128.163.232.85:6633
 sudo ovs-vsctl show
 sudo ovs-vsctl find bridge datapath_id=0000000000000002
 sudo ovs-vsctl set-fail-mode br0 secure
@@ -25,3 +25,6 @@ sudo ovs-vsctl set-fail-mode br0 secure
 #run controller
 cd /tmp/pox
 ./pox.py --verbose forwarding.l2_learning
+
+#share vlan
+omni.py -V 3 -a uky-ig poa SimpleTopoOne geni_sharelan --optionsfile lan-options.json
