@@ -24,7 +24,25 @@ sudo ovs-vsctl set-fail-mode br0 secure
 
 #run controller
 cd /tmp/pox
-./pox.py --verbose forwarding.l2_learning
+./pox.py --verbose forwarding.l2_learning forwarding.migrate_vn 
 
 #share vlan
 omni.py -V 3 -a uky-ig poa SimpleTopoOne geni_sharelan --optionsfile lan-options.json
+
+#at command 
+# note: remember to install at on all switchesifconfig
+
+sudo at -f interface-down.sh -v 11:35
+
+ssh -t yzhao389@128.163.232.70 'sudo at -f interface-down.sh -v now + 1 minute'
+
+#install pip
+sudo apt-get install python-pip python-dev build-essential 
+sudo pip install --upgrade pip 
+sudo pip install --upgrade virtualenv
+
+#install paramiko
+pip install paramiko
+
+
+

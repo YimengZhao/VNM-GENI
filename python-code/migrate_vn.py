@@ -86,15 +86,15 @@ def start_migration():
 # structure of event.stats is defined by ofp_flow_stats()
 def _handle_flowstats_received (event):
   stats = flow_stats_to_list(event.stats)
-  #log.debug("FlowStatsReceived from %s: %s", 
-   #dpidToStr(event.connection.dpid), stats)
+  log.debug("FlowStatsReceived from %s: %s", 
+   dpidToStr(event.connection.dpid), stats)
   
   #insert the flow enries into the new switches
   _insert_flow_entries(event)
 
   # bring up the interfaces at ovs-2
-  #print 'bring up the interfaces in ovs-2'
-  #remote_cmd.ssh_run_cmd(ovs2_IP,'sudo sh interface-up.sh -v')
+  print 'bring up the interfaces in ovs-2'
+  remote_cmd.ssh_run_cmd(ovs2_IP,'sudo sh interface-up.sh -v')
 
 
 # handler to display port statistics received in JSON format
@@ -119,7 +119,7 @@ def _insert_flow_entries(event):
 
 def _flow_stats_to_flow_mod (flow):
   actions = flow.get('actions', [])
-  #print "actions: ", actions
+  print "actions: ", actions
   if not isinstance(actions, list): actions = [actions]
   actions = [_dict_to_action(a) for a in actions]
   if 'output' in flow:   
@@ -136,10 +136,10 @@ def _flow_stats_to_flow_mod (flow):
   fm.match.dl_vlan = match_list.get('dl_vlan')
   if match_list.get('dl_type') == 'IP':
     fm.match.dl_type = 0x800
-    #print 'IP'
+    print 'IP'
   elif match_list.get('dl_type') == 'ARP':
     fm.match.dl_type = 0x806
-    #print 'ARP'
+    print 'ARP'
   fm.match.new_tos = match_list.get('nw_tos')
   fm.match.nw_proto = match_list.get('nw_proto')
 
@@ -185,7 +185,7 @@ def launch ():
     _handle_portstats_received) 
 
   # migrate virtual network
-  #_migrate_vn()
+  _migrate_vn()
 
   # timer set to execute every five seconds
-  Timer(5, _timer_func, recurring=True)
+  #Timer(5, _timer_func, recurring=True)
