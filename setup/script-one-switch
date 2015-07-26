@@ -44,5 +44,26 @@ sudo pip install --upgrade virtualenv
 #install paramiko
 pip install paramiko
 
+#tcpdump
+sudo tcpdump -i eth1 -w ovs2-eth1.pcap &
+pid1=$! 
+sudo tcpdump -i eth2 -w ovs2-eth2.pcap &
+pid2=$! 
+sleep 10s
+sudo kill $pid1
+sudo kill $pid2
+
+sudo tcpdump -i eth1 -w ovs2-eth1.pcap & &&pid1=$!&&sleep 10s&&sudo kill $pid1
+
+#kill all tcpdump
+ps -A | grep tcpdump | cut -d " " -f1 |  xargs sudo kill -9
+
+scp -r -P 31290 yzhao389@pc5.lan.sdn.uky.edu:~/host1_tcpdump ./
+scp -r -P 31290 yzhao389@pc1.lan.sdn.uky.edu:~/host2_tcpdump ./
+scp -r yzhao389@pcvm5-27.lan.sdn.uky.edu:~/ovs1_tcpdump ./
+scp -r yzhao389@pcvm5-27.lan.sdn.uky.edu:~/ovs2_tcpdump ./
+
+iperf -s
+iperf -c 192.168.10.10 -t 300
 
 

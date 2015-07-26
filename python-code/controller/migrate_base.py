@@ -1,28 +1,5 @@
 #!/usr/bin/python
-# Copyright 2012 William Yu
-# wyu@ateneo.edu
-#
-# This file is part of POX.
-#
-# POX is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# POX is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with POX. If not, see <http://www.gnu.org/licenses/>.
-#
-
-"""
-This is a demonstration file created to show how to obtain flow 
-and port statistics from OpenFlow 1.0-enabled switches. The flow
-statistics handler contains a summary of web-only traffic.
-"""
+# Copyright 2015 Yimeng Zhao
 
 # standard includes
 from pox.core import core
@@ -38,10 +15,13 @@ import remote_cmd
 # include as part of the betta branch
 from pox.openflow.of_json import *
 
+ovs2_tcpdump_duration = "60s"
 newswitch_dpid = 2
 oldswitch_dpid = 1
 ovs1_IP = '128.163.232.70'
 ovs2_IP = '128.163.232.84'
+host1_IP = '172.17.5.26'
+host2_IP = '172.17.1.4'
 
 log = core.getLogger()
 
@@ -64,23 +44,37 @@ def _migrate_vn ():
     for exp in expDict:
       print "Prepare stage: ", exp['prepare_time'], 's:'
 
-      # bring down interface at ovs-1 after 1 minute
-      #remote_cmd.ssh_run_cmd(ovs1_IP,'sudo at -f sh interface-down.sh -v now + 1 minute')
-      #remote_cmd.ssh_run_cmd('128.163.232.70','sudo at -f interface-down.sh -v now + 1 minute')
-      print 'send remote cmd to bring down interface on ovs-1'
-      remote_cmd.ssh_run_cmd('128.163.232.70','sudo at -f interface-down.sh -v now + 1 minute')
+
+      client_cmd = 'iperf -c 192.168.10.10 -t 300'
+      threading.Timer(20, _iperf, args=(host1_IP, client_cmd, )).start()
 
       # start migration after 1 minute
+      print "start timer"
       threading.Timer(60, start_migration).start()
 
+def _iperf(IP, cmd):
+  t = threading.Thread(target=remote_cmd.ssh_run_cmd, args=(IP, cmd, ))
+  t.start()
+  #remote_cmd.ssh_run_cmd(IP, cmd)
+
+# start migration: copy the rules from old switches to new switches
 def start_migration():
   print "Start migration..."
-      
-  for connection in core.openflow._connections.values():
-    if connection.dpid == oldswitch_dpid:
-      connection.send(of.ofp_stats_request(body=of.ofp_flow_stats_request()))
-      log.debug("Sent %i flow/port stats request(s)", len(core.openflow._connections))
 
+  # bring down the interfaces at ovs-1                                         
+  print 'bring down the interfaces in ovs-1'
+  remote_cmd.ssh_run_cmd(ovs1_IP,'sudo sh interface-down.sh')
+
+  log.info("install drop rule for 1s")
+  for connection in core.openflow._connections.values():
+    if connection.dpid == newswitch_dpid:
+      _drop(1, connection, 1)
+      _drop(1, connection, 2)
+  # bring up the interfaces at ovs-2                                           
+  print 'bring up the interfaces in ovs-2'
+  remote_cmd.ssh_run_cmd(ovs2_IP,'sudo sh interface-up.sh')
+  
+  
 
 # handler to display flow statistics received in JSON format
 # structure of event.stats is defined by ofp_flow_stats()
@@ -92,10 +86,7 @@ def _handle_flowstats_received (event):
   #insert the flow enries into the new switches
   _insert_flow_entries(event)
 
-  # bring up the interfaces at ovs-2
-  print 'bring up the interfaces in ovs-2'
-  remote_cmd.ssh_run_cmd(ovs2_IP,'sudo sh interface-up.sh -v')
-
+  
 
 # handler to display port statistics received in JSON format
 def _handle_portstats_received (event):
@@ -104,18 +95,27 @@ def _handle_portstats_received (event):
     dpidToStr(event.connection.dpid), stats)
 
 
-# insert rules to new switch
-def _insert_flow_entries(event):
-  stats = flow_stats_to_list(event.stats)
-  for connection in core.openflow._connections.values():
-    log.debug("connection dpid: %s", connection.dpid)
-    if connection.dpid == newswitch_dpid:
-      log.debug("install rule on switch %s", connection.dpid)
-      for flow in stats:
-        #log.debug("flow: %s", flow)
-        msg = _flow_stats_to_flow_mod(flow)
-        connection.send(msg)
 
+# handler to bring down the interfaces in new VNs after all flows are installed
+def _handle_flow_ready(event):
+  if event.ofp.xid != 0x80000000:
+    return
+  log.debug("barrier msg received from %s: ", event.connection.dpid)
+
+  
+  #cmd = "sudo sh interface-up.sh;sudo python VNM-dump.py " + ovs2_tcpdump_duration
+  #t = threading.Thread(target=remote_cmd.ssh_run_cmd, args=(ovs2_IP, cmd, ))
+  #t.start()
+
+def _drop(duration, connection, inport):
+  if duration is not None:
+    if not isinstance(duration, tuple):
+      duration = (duration, duration)
+    msg = of.ofp_flow_mod()
+    msg.in_port = inport
+    msg.idle_timeout = duration[0]
+    msg.hard_timeout = duration[1]
+    connection.send(msg)
 
 def _flow_stats_to_flow_mod (flow):
   actions = flow.get('actions', [])
@@ -129,7 +129,13 @@ def _flow_stats_to_flow_mod (flow):
   fm = of.ofp_flow_mod()
   match_list = flow.get('match')
 
-  fm.match.in_port = match_list.get('in_port')
+  in_port = 0
+  port = match_list.get('in_port')
+  if port == 1:
+    in_port = 2
+  elif port == 2:
+    in_port = 1
+  fm.match.in_port = in_port
 
   fm.match.dl_src = EthAddr(match_list.get('dl_src'))
   fm.match.dl_dst = EthAddr(match_list.get('dl_dst'))
