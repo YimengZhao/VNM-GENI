@@ -42,7 +42,7 @@ sudo pip install --upgrade pip
 sudo pip install --upgrade virtualenv
 
 #install paramiko
-pip install paramiko
+sudo pip install paramiko
 
 #tcpdump
 sudo tcpdump -i eth1 -w ovs2-eth1.pcap &
