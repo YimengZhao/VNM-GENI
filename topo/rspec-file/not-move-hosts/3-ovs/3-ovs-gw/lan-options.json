@@ -1,0 +1,24 @@
+{
+ "geni_sharelan_lanname": "link-1",
+ "geni_sharelan_token": "3ovsgatewaylan1"
+}
+{
+ "geni_sharelan_lanname": "link-2",
+ "geni_sharelan_token": "3ovsgatewaylan2"
+}
+{
+ "geni_sharelan_lanname": "link-4",
+ "geni_sharelan_token": "3ovsgatewaylan3"
+}
+{
+ "geni_sharelan_lanname": "link-5",
+ "geni_sharelan_token": "3ovsgatewaylan4"
+}
+{
+ "geni_sharelan_lanname": "link-7",
+ "geni_sharelan_token": "3ovsgatewaylan5"
+}
+{
+ "geni_sharelan_lanname": "link-8",
+ "geni_sharelan_token": "3ovsgatewaylan6"
+}
