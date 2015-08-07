@@ -1,0 +1,290 @@
+<rspec xmlns="http://www.geni.net/resources/rspec/3" xmlns:emulab="http://www.protogeni.net/resources/rspec/ext/emulab/1" xmlns:tour="http://www.protogeni.net/resources/rspec/ext/apt-tour/1" xmlns:jacks="http://www.protogeni.net/resources/rspec/ext/jacks/1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.geni.net/resources/rspec/3    http://www.geni.net/resources/rspec/3/request.xsd" type="request">
+<node client_id="Gateway-1" component_manager_id="urn:publicid:IDN+lan.sdn.uky.edu+authority+cm">
+    <routable_control_ip xmlns="http://www.protogeni.net/resources/rspec/ext/emulab/1"/>
+    <sliver_type name="emulab-xen">
+    <disk_image name="urn:publicid:IDN+emulab.net+image+emulab-ops:UBUNTU14-OVS2.31"/>
+    </sliver_type>
+    <services>
+                            
+
+
+
+
+
+
+
+
+
+
+
+<execute command="sudo /local/install-script.sh" shell="sh"/>
+<execute command="sudo /local/install-script-wireshark.sh" shell="sh"/>
+<install install_path="/local" url="http://www.gpolab.bbn.com/experiment-support/OpenFlowOVS/wireshark.tar.gz"/>
+</services>
+               <interface xmlns="http://www.geni.net/resources/rspec/3" client_id="interface-1">
+
+<ip address="10.10.1.2" netmask="255.255.255.0" type="ipv4"/>
+</interface>
+<interface xmlns="http://www.geni.net/resources/rspec/3" client_id="interface-2">
+<ip address="10.10.2.1" netmask="255.255.255.0" type="ipv4"/>
+</interface>
+<interface xmlns="http://www.geni.net/resources/rspec/3" client_id="interface-4">
+<ip address="10.10.3.1" netmask="255.255.255.0" type="ipv4"/>
+</interface>
+</node>
+<node xmlns="http://www.geni.net/resources/rspec/3" client_id="host1" component_manager_id="urn:publicid:IDN+lan.sdn.uky.edu+authority+cm">
+<icon xmlns="http://www.protogeni.net/resources/rspec/ext/jacks/1" url="https://portal.geni.net/images/Xen-VM.svg"/>
+<sliver_type xmlns="http://www.geni.net/resources/rspec/3" name="emulab-xen">
+<disk_image xmlns="http://www.geni.net/resources/rspec/3" name="urn:publicid:IDN+emulab.net+image+emulab-ops:UBUNTU12-64-STD"/>
+</sliver_type>
+<services xmlns="http://www.geni.net/resources/rspec/3"/>
+<interface xmlns="http://www.geni.net/resources/rspec/3" client_id="interface-0">
+
+<ip address="10.10.1.1" netmask="255.255.255.0" type="ipv4"/>
+</interface>
+</node>
+<node xmlns="http://www.geni.net/resources/rspec/3" client_id="node-1" component_manager_id="urn:publicid:IDN+instageni.idre.ucla.edu+authority+cm">
+<icon xmlns="http://www.protogeni.net/resources/rspec/ext/jacks/1" url="https://portal.geni.net/images/Xen-VM.svg"/>
+<sliver_type xmlns="http://www.geni.net/resources/rspec/3" name="emulab-xen">
+<disk_image xmlns="http://www.geni.net/resources/rspec/3" name="urn:publicid:IDN+emulab.net+image+emulab-ops:UBUNTU12-64-STD"/>
+</sliver_type>
+<services xmlns="http://www.geni.net/resources/rspec/3"/>
+<interface xmlns="http://www.geni.net/resources/rspec/3" client_id="interface-3">
+<ip address="10.10.2.2" netmask="255.255.255.0" type="ipv4"/>
+</interface>
+</node>
+<node xmlns="http://www.geni.net/resources/rspec/3" client_id="node-2" component_manager_id="urn:publicid:IDN+utahddc.geniracks.net+authority+cm">
+<icon xmlns="http://www.protogeni.net/resources/rspec/ext/jacks/1" url="https://portal.geni.net/images/Xen-VM.svg"/>
+<sliver_type xmlns="http://www.geni.net/resources/rspec/3" name="emulab-xen">
+<disk_image xmlns="http://www.geni.net/resources/rspec/3" name="urn:publicid:IDN+emulab.net+image+emulab-ops:UBUNTU12-64-STD"/>
+</sliver_type>
+<services xmlns="http://www.geni.net/resources/rspec/3"/>
+<interface xmlns="http://www.geni.net/resources/rspec/3" client_id="interface-5">
+<ip address="10.10.3.2" netmask="255.255.255.0" type="ipv4"/>
+</interface>
+</node>
+<node client_id="Gateway-2" component_manager_id="urn:publicid:IDN+lan.sdn.uky.edu+authority+cm">
+    <routable_control_ip xmlns="http://www.protogeni.net/resources/rspec/ext/emulab/1"/>
+    <sliver_type name="emulab-xen">
+    <disk_image name="urn:publicid:IDN+emulab.net+image+emulab-ops:UBUNTU14-OVS2.31"/>
+    </sliver_type>
+    <services>
+                            
+
+
+
+
+
+
+
+
+
+
+
+<execute command="sudo /local/install-script.sh" shell="sh"/>
+<execute command="sudo /local/install-script-wireshark.sh" shell="sh"/>
+<install install_path="/local" url="http://www.gpolab.bbn.com/experiment-support/OpenFlowOVS/wireshark.tar.gz"/>
+</services>
+               
+
+
+<interface xmlns="http://www.geni.net/resources/rspec/3" client_id="interface-7">
+
+<ip address="10.10.4.2" netmask="255.255.255.0" type="ipv4"/>
+</interface>
+<interface xmlns="http://www.geni.net/resources/rspec/3" client_id="interface-8">
+<ip address="10.10.5.1" netmask="255.255.255.0" type="ipv4"/>
+</interface>
+<interface xmlns="http://www.geni.net/resources/rspec/3" client_id="interface-10">
+<ip address="10.10.6.1" netmask="255.255.255.0" type="ipv4"/>
+</interface>
+</node>
+<node client_id="Gateway-3" component_manager_id="urn:publicid:IDN+lan.sdn.uky.edu+authority+cm">
+    <routable_control_ip xmlns="http://www.protogeni.net/resources/rspec/ext/emulab/1"/>
+    <sliver_type name="emulab-xen">
+    <disk_image name="urn:publicid:IDN+emulab.net+image+emulab-ops:UBUNTU14-OVS2.31"/>
+    </sliver_type>
+    <services>
+                            
+
+
+
+
+
+
+
+
+
+
+
+<execute command="sudo /local/install-script.sh" shell="sh"/>
+<execute command="sudo /local/install-script-wireshark.sh" shell="sh"/>
+<install install_path="/local" url="http://www.gpolab.bbn.com/experiment-support/OpenFlowOVS/wireshark.tar.gz"/>
+</services>
+               
+
+
+<interface xmlns="http://www.geni.net/resources/rspec/3" client_id="interface-13">
+
+<ip address="10.10.7.2" netmask="255.255.255.0" type="ipv4"/>
+</interface>
+<interface xmlns="http://www.geni.net/resources/rspec/3" client_id="interface-14">
+<ip address="10.10.8.1" netmask="255.255.255.0" type="ipv4"/>
+</interface>
+<interface xmlns="http://www.geni.net/resources/rspec/3" client_id="interface-16">
+<ip address="10.10.9.1" netmask="255.255.255.0" type="ipv4"/>
+</interface>
+</node>
+<node xmlns="http://www.geni.net/resources/rspec/3" client_id="host2" component_manager_id="urn:publicid:IDN+lan.sdn.uky.edu+authority+cm">
+<icon xmlns="http://www.protogeni.net/resources/rspec/ext/jacks/1" url="https://portal.geni.net/images/Xen-VM.svg"/>
+<sliver_type xmlns="http://www.geni.net/resources/rspec/3" name="emulab-xen">
+<disk_image xmlns="http://www.geni.net/resources/rspec/3" name="urn:publicid:IDN+emulab.net+image+emulab-ops:UBUNTU12-64-STD"/>
+</sliver_type>
+<services xmlns="http://www.geni.net/resources/rspec/3"/>
+<interface xmlns="http://www.geni.net/resources/rspec/3" client_id="interface-6">
+
+<ip address="10.10.4.1" netmask="255.255.255.0" type="ipv4"/>
+</interface>
+</node>
+<node xmlns="http://www.geni.net/resources/rspec/3" client_id="node-3" component_manager_id="urn:publicid:IDN+instageni.idre.ucla.edu+authority+cm">
+<icon xmlns="http://www.protogeni.net/resources/rspec/ext/jacks/1" url="https://portal.geni.net/images/Xen-VM.svg"/>
+<sliver_type xmlns="http://www.geni.net/resources/rspec/3" name="emulab-xen">
+<disk_image xmlns="http://www.geni.net/resources/rspec/3" name="urn:publicid:IDN+emulab.net+image+emulab-ops:UBUNTU12-64-STD"/>
+</sliver_type>
+<services xmlns="http://www.geni.net/resources/rspec/3"/>
+<interface xmlns="http://www.geni.net/resources/rspec/3" client_id="interface-9">
+<ip address="10.10.5.2" netmask="255.255.255.0" type="ipv4"/>
+</interface>
+</node>
+<node xmlns="http://www.geni.net/resources/rspec/3" client_id="node-4" component_manager_id="urn:publicid:IDN+utahddc.geniracks.net+authority+cm">
+<icon xmlns="http://www.protogeni.net/resources/rspec/ext/jacks/1" url="https://portal.geni.net/images/Xen-VM.svg"/>
+<sliver_type xmlns="http://www.geni.net/resources/rspec/3" name="emulab-xen">
+<disk_image xmlns="http://www.geni.net/resources/rspec/3" name="urn:publicid:IDN+emulab.net+image+emulab-ops:UBUNTU12-64-STD"/>
+</sliver_type>
+<services xmlns="http://www.geni.net/resources/rspec/3"/>
+<interface xmlns="http://www.geni.net/resources/rspec/3" client_id="interface-11">
+<ip address="10.10.6.2" netmask="255.255.255.0" type="ipv4"/>
+</interface>
+</node>
+<node xmlns="http://www.geni.net/resources/rspec/3" client_id="host3" component_manager_id="urn:publicid:IDN+lan.sdn.uky.edu+authority+cm">
+<icon xmlns="http://www.protogeni.net/resources/rspec/ext/jacks/1" url="https://portal.geni.net/images/Xen-VM.svg"/>
+<sliver_type xmlns="http://www.geni.net/resources/rspec/3" name="emulab-xen">
+<disk_image xmlns="http://www.geni.net/resources/rspec/3" name="urn:publicid:IDN+emulab.net+image+emulab-ops:UBUNTU12-64-STD"/>
+</sliver_type>
+<services xmlns="http://www.geni.net/resources/rspec/3"/>
+<interface xmlns="http://www.geni.net/resources/rspec/3" client_id="interface-12">
+
+<ip address="10.10.7.1" netmask="255.255.255.0" type="ipv4"/>
+</interface>
+</node>
+<node xmlns="http://www.geni.net/resources/rspec/3" client_id="node-5" component_manager_id="urn:publicid:IDN+instageni.idre.ucla.edu+authority+cm">
+<icon xmlns="http://www.protogeni.net/resources/rspec/ext/jacks/1" url="https://portal.geni.net/images/Xen-VM.svg"/>
+<sliver_type xmlns="http://www.geni.net/resources/rspec/3" name="emulab-xen">
+<disk_image xmlns="http://www.geni.net/resources/rspec/3" name="urn:publicid:IDN+emulab.net+image+emulab-ops:UBUNTU12-64-STD"/>
+</sliver_type>
+<services xmlns="http://www.geni.net/resources/rspec/3"/>
+<interface xmlns="http://www.geni.net/resources/rspec/3" client_id="interface-15">
+<ip address="10.10.8.2" netmask="255.255.255.0" type="ipv4"/>
+</interface>
+</node>
+<node xmlns="http://www.geni.net/resources/rspec/3" client_id="node-6" component_manager_id="urn:publicid:IDN+utahddc.geniracks.net+authority+cm">
+<icon xmlns="http://www.protogeni.net/resources/rspec/ext/jacks/1" url="https://portal.geni.net/images/Xen-VM.svg"/>
+<sliver_type xmlns="http://www.geni.net/resources/rspec/3" name="emulab-xen">
+<disk_image xmlns="http://www.geni.net/resources/rspec/3" name="urn:publicid:IDN+emulab.net+image+emulab-ops:UBUNTU12-64-STD"/>
+</sliver_type>
+<services xmlns="http://www.geni.net/resources/rspec/3"/>
+<interface xmlns="http://www.geni.net/resources/rspec/3" client_id="interface-17">
+<ip address="10.10.9.2" netmask="255.255.255.0" type="ipv4"/>
+</interface>
+</node>
+<link xmlns="http://www.geni.net/resources/rspec/3" client_id="link-0">
+<interface_ref xmlns="http://www.geni.net/resources/rspec/3" client_id="interface-0"/>
+<interface_ref xmlns="http://www.geni.net/resources/rspec/3" client_id="interface-1"/>
+<link_attribute xmlns="http://www.protogeni.net/resources/rspec/ext/emulab/1" key="nomac_learning" value="yep"/>
+
+
+
+
+<site xmlns="http://www.protogeni.net/resources/rspec/ext/jacks/1" id="urn:publicid:IDN+lan.sdn.uky.edu+authority+cm"/>
+</link>
+<link xmlns="http://www.geni.net/resources/rspec/3" client_id="link-1">
+<interface_ref xmlns="http://www.geni.net/resources/rspec/3" client_id="interface-2"/>
+<interface_ref xmlns="http://www.geni.net/resources/rspec/3" client_id="interface-3"/>
+<link_attribute xmlns="http://www.protogeni.net/resources/rspec/ext/emulab/1" key="nomac_learning" value="yep"/>
+
+
+
+<link_type xmlns="http://www.geni.net/resources/rspec/3" name="vlan"/>
+
+
+<site xmlns="http://www.protogeni.net/resources/rspec/ext/jacks/1" id="urn:publicid:IDN+lan.sdn.uky.edu+authority+cm"/>
+<site xmlns="http://www.protogeni.net/resources/rspec/ext/jacks/1" id="urn:publicid:IDN+instageni.idre.ucla.edu+authority+cm"/>
+</link>
+<link xmlns="http://www.geni.net/resources/rspec/3" client_id="link-2">
+<interface_ref xmlns="http://www.geni.net/resources/rspec/3" client_id="interface-4"/>
+<interface_ref xmlns="http://www.geni.net/resources/rspec/3" client_id="interface-5"/>
+<link_attribute xmlns="http://www.protogeni.net/resources/rspec/ext/emulab/1" key="nomac_learning" value="yep"/>
+
+
+
+<link_type xmlns="http://www.geni.net/resources/rspec/3" name="vlan"/>
+
+
+<site xmlns="http://www.protogeni.net/resources/rspec/ext/jacks/1" id="urn:publicid:IDN+lan.sdn.uky.edu+authority+cm"/>
+<site xmlns="http://www.protogeni.net/resources/rspec/ext/jacks/1" id="urn:publicid:IDN+utahddc.geniracks.net+authority+cm"/>
+</link>
+<link xmlns="http://www.geni.net/resources/rspec/3" client_id="link-3">
+<interface_ref xmlns="http://www.geni.net/resources/rspec/3" client_id="interface-6"/>
+<interface_ref xmlns="http://www.geni.net/resources/rspec/3" client_id="interface-7"/>
+
+<link_attribute xmlns="http://www.protogeni.net/resources/rspec/ext/emulab/1" key="nomac_learning" value="yep"/>
+<site xmlns="http://www.protogeni.net/resources/rspec/ext/jacks/1" id="urn:publicid:IDN+lan.sdn.uky.edu+authority+cm"/>
+</link>
+<link xmlns="http://www.geni.net/resources/rspec/3" client_id="link-4">
+<link_type xmlns="http://www.geni.net/resources/rspec/3" name="vlan"/>
+<interface_ref xmlns="http://www.geni.net/resources/rspec/3" client_id="interface-8"/>
+<interface_ref xmlns="http://www.geni.net/resources/rspec/3" client_id="interface-9"/>
+
+
+<link_attribute xmlns="http://www.protogeni.net/resources/rspec/ext/emulab/1" key="nomac_learning" value="yep"/>
+<site xmlns="http://www.protogeni.net/resources/rspec/ext/jacks/1" id="urn:publicid:IDN+lan.sdn.uky.edu+authority+cm"/>
+<site xmlns="http://www.protogeni.net/resources/rspec/ext/jacks/1" id="urn:publicid:IDN+instageni.idre.ucla.edu+authority+cm"/>
+</link>
+<link xmlns="http://www.geni.net/resources/rspec/3" client_id="link-5">
+<link_type xmlns="http://www.geni.net/resources/rspec/3" name="vlan"/>
+<interface_ref xmlns="http://www.geni.net/resources/rspec/3" client_id="interface-10"/>
+<interface_ref xmlns="http://www.geni.net/resources/rspec/3" client_id="interface-11"/>
+
+
+<link_attribute xmlns="http://www.protogeni.net/resources/rspec/ext/emulab/1" key="nomac_learning" value="yep"/>
+<site xmlns="http://www.protogeni.net/resources/rspec/ext/jacks/1" id="urn:publicid:IDN+lan.sdn.uky.edu+authority+cm"/>
+<site xmlns="http://www.protogeni.net/resources/rspec/ext/jacks/1" id="urn:publicid:IDN+utahddc.geniracks.net+authority+cm"/>
+</link>
+<link xmlns="http://www.geni.net/resources/rspec/3" client_id="link-6">
+<interface_ref xmlns="http://www.geni.net/resources/rspec/3" client_id="interface-12"/>
+<interface_ref xmlns="http://www.geni.net/resources/rspec/3" client_id="interface-13"/>
+
+<link_attribute xmlns="http://www.protogeni.net/resources/rspec/ext/emulab/1" key="nomac_learning" value="yep"/>
+<site xmlns="http://www.protogeni.net/resources/rspec/ext/jacks/1" id="urn:publicid:IDN+lan.sdn.uky.edu+authority+cm"/>
+</link>
+<link xmlns="http://www.geni.net/resources/rspec/3" client_id="link-7">
+<link_type xmlns="http://www.geni.net/resources/rspec/3" name="vlan"/>
+<interface_ref xmlns="http://www.geni.net/resources/rspec/3" client_id="interface-14"/>
+<interface_ref xmlns="http://www.geni.net/resources/rspec/3" client_id="interface-15"/>
+
+
+<link_attribute xmlns="http://www.protogeni.net/resources/rspec/ext/emulab/1" key="nomac_learning" value="yep"/>
+<site xmlns="http://www.protogeni.net/resources/rspec/ext/jacks/1" id="urn:publicid:IDN+lan.sdn.uky.edu+authority+cm"/>
+<site xmlns="http://www.protogeni.net/resources/rspec/ext/jacks/1" id="urn:publicid:IDN+instageni.idre.ucla.edu+authority+cm"/>
+</link>
+<link xmlns="http://www.geni.net/resources/rspec/3" client_id="link-8">
+<link_type xmlns="http://www.geni.net/resources/rspec/3" name="vlan"/>
+<interface_ref xmlns="http://www.geni.net/resources/rspec/3" client_id="interface-16"/>
+<interface_ref xmlns="http://www.geni.net/resources/rspec/3" client_id="interface-17"/>
+
+
+<link_attribute xmlns="http://www.protogeni.net/resources/rspec/ext/emulab/1" key="nomac_learning" value="yep"/>
+<site xmlns="http://www.protogeni.net/resources/rspec/ext/jacks/1" id="urn:publicid:IDN+lan.sdn.uky.edu+authority+cm"/>
+<site xmlns="http://www.protogeni.net/resources/rspec/ext/jacks/1" id="urn:publicid:IDN+utahddc.geniracks.net+authority+cm"/>
+</link>
+</rspec>

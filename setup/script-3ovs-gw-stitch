@@ -1,0 +1,117 @@
+#ovs1
+sudo ovs-vsctl add-br br0
+sudo ifconfig eth1 0
+sudo ifconfig eth2 0
+sudo ifconfig eth3 0
+sudo ovs-vsctl set-fail-mode br0 secure
+sudo ovs-vsctl add-port br0 eth1
+sudo ovs-vsctl add-port br0 eth2
+sudo ovs-vsctl add-port br0 eth3
+sudo ovs-vsctl set bridge br0 other-config:datapath-id=0000000000000001
+sudo ovs-vsctl set-controller br0 tcp:128.163.232.103:6633
+sudo ovs-vsctl show
+sudo ovs-vsctl find bridge datapath_id=0000000000000001
+
+#ovs2
+sudo ovs-vsctl add-br br0
+sudo ifconfig eth1 0
+sudo ifconfig eth2 0
+sudo ovs-vsctl add-port br0 eth1
+sudo ovs-vsctl add-port br0 eth2
+sudo ovs-vsctl set bridge br0 other-config:datapath-id=0000000000000002
+sudo ovs-vsctl set-controller br0 tcp:128.163.232.103:6633
+sudo ovs-vsctl show
+sudo ovs-vsctl find bridge datapath_id=0000000000000002
+sudo ovs-vsctl set-fail-mode br0 secure
+
+#ovs3
+sudo ovs-vsctl add-br br0
+sudo ifconfig eth1 0
+sudo ifconfig eth2 0
+sudo ovs-vsctl add-port br0 eth1
+sudo ovs-vsctl add-port br0 eth2
+sudo ovs-vsctl set bridge br0 other-config:datapath-id=0000000000000003
+sudo ovs-vsctl set-controller br0 tcp:128.163.232.103:6633
+sudo ovs-vsctl show
+sudo ovs-vsctl find bridge datapath_id=0000000000000003
+sudo ovs-vsctl set-fail-mode br0 secure
+
+#ovs4
+sudo ovs-vsctl add-br br0
+sudo ifconfig eth1 0
+sudo ifconfig eth2 0
+sudo ifconfig eth3 0
+sudo ovs-vsctl set-fail-mode br0 secure
+sudo ovs-vsctl add-port br0 eth1
+sudo ovs-vsctl add-port br0 eth2
+sudo ovs-vsctl add-port br0 eth3
+sudo ovs-vsctl set bridge br0 other-config:datapath-id=0000000000000004
+sudo ovs-vsctl set-controller br0 tcp:128.163.232.103:6633
+sudo ovs-vsctl show
+sudo ovs-vsctl find bridge datapath_id=0000000000000004
+
+#ovs5
+sudo ovs-vsctl add-br br0
+sudo ifconfig eth1 0
+sudo ifconfig eth2 0
+sudo ovs-vsctl add-port br0 eth1
+sudo ovs-vsctl add-port br0 eth2
+sudo ovs-vsctl set bridge br0 other-config:datapath-id=0000000000000005
+sudo ovs-vsctl set-controller br0 tcp:128.163.232.103:6633
+sudo ovs-vsctl show
+sudo ovs-vsctl find bridge datapath_id=0000000000000005
+sudo ovs-vsctl set-fail-mode br0 secure
+
+#ovs6
+sudo ovs-vsctl add-br br0
+sudo ifconfig eth1 0
+sudo ifconfig eth2 0
+sudo ovs-vsctl add-port br0 eth1
+sudo ovs-vsctl add-port br0 eth2
+sudo ovs-vsctl set bridge br0 other-config:datapath-id=0000000000000006
+sudo ovs-vsctl set-controller br0 tcp:128.163.232.103:6633
+sudo ovs-vsctl show
+sudo ovs-vsctl find bridge datapath_id=0000000000000006
+sudo ovs-vsctl set-fail-mode br0 secure
+
+#g1
+sudo ovs-vsctl add-br br0
+sudo ifconfig eth1 0
+sudo ifconfig eth2 0
+sudo ifconfig eth3 0
+sudo ovs-vsctl set-fail-mode br0 secure
+sudo ovs-vsctl add-port br0 eth1
+sudo ovs-vsctl add-port br0 eth2
+sudo ovs-vsctl add-port br0 eth3
+sudo ovs-vsctl set bridge br0 other-config:datapath-id=0000000000000007
+sudo ovs-vsctl set-controller br0 tcp:128.163.232.103:6633
+sudo ovs-vsctl show
+sudo ovs-vsctl find bridge datapath_id=0000000000000007
+
+#g2
+sudo ovs-vsctl add-br br0
+sudo ifconfig eth1 0
+sudo ifconfig eth2 0
+sudo ifconfig eth3 0
+sudo ovs-vsctl set-fail-mode br0 secure
+sudo ovs-vsctl add-port br0 eth1
+sudo ovs-vsctl add-port br0 eth2
+sudo ovs-vsctl add-port br0 eth3
+sudo ovs-vsctl set bridge br0 other-config:datapath-id=0000000000000008
+sudo ovs-vsctl set-controller br0 tcp:128.163.232.103:6633
+sudo ovs-vsctl show
+sudo ovs-vsctl find bridge datapath_id=0000000000000008
+
+#g3
+sudo ovs-vsctl add-br br0
+sudo ifconfig eth1 0
+sudo ifconfig eth2 0
+sudo ifconfig eth3 0
+sudo ovs-vsctl set-fail-mode br0 secure
+sudo ovs-vsctl add-port br0 eth1
+sudo ovs-vsctl add-port br0 eth2
+sudo ovs-vsctl add-port br0 eth3
+sudo ovs-vsctl set bridge br0 other-config:datapath-id=0000000000000009
+sudo ovs-vsctl set-controller br0 tcp:128.163.232.103:6633
+sudo ovs-vsctl show
+sudo ovs-vsctl find bridge datapath_id=0000000000000009
