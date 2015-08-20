@@ -101,14 +101,6 @@ def _install_path_by_port(connection, in_port, out_port):
       
 
 def _config_gateway(vn_id):
-      log.info('config interface in gateways')
-      remote_cmd.ssh_run_cmd(g1_IP,'sudo ifconfig eth2 up')
-      remote_cmd.ssh_run_cmd(g1_IP,'sudo ifconfig eth3 up')
-      remote_cmd.ssh_run_cmd(g2_IP,'sudo ifconfig eth2 up')
-      remote_cmd.ssh_run_cmd(g2_IP,'sudo ifconfig eth3 up')
-      remote_cmd.ssh_run_cmd(g3_IP,'sudo ifconfig eth2 up')
-      remote_cmd.ssh_run_cmd(g3_IP,'sudo ifconfig eth3 up')
-      
       log.info('install initial rules on gateways')
       in_port = 0
       out_port = 0
@@ -145,7 +137,6 @@ def _config_gateway(vn_id):
                         drop_port = 2
                   else:
                         continue
-
 
             log.info('delete all flows at %s', connection.dpid)
             #delete all flows                                                   
@@ -236,7 +227,7 @@ def _insert_flow_entries(event):
         port_dict = {2:2,3:3,1:1}
         insert_sw_id = ovs5_dpid
   elif event.connection.dpid == ovs3_dpid:
-        port_dict = {1:2,3:1,2:3}
+        port_dict = {1:3,2:2,3:1}
         insert_sw_id = ovs6_dpid
   
   _insert_flow_into_switch(stats, insert_sw_id, port_dict)
