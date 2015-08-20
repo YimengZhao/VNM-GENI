@@ -39,13 +39,23 @@ log = core.getLogger()
 
 # migrate virtual network
 def _migrate_vn ():
+      threading.Timer(15, _initial_config).start()
   
       client_cmd = 'iperf -c 10.10.1.6 -u -t 100'
-      threading.Timer(20, _iperf, args=(host2_IP, client_cmd, )).start()
+      threading.Timer(20, _iperf, args=(host1_IP, client_cmd, )).start()
 
       # start migration after 1 minute
       print "start timer"
       threading.Timer(60, start_migration).start()
+
+def _initial_config():
+      log.info("bring up interfaces in gatewas")
+      remote_cmd.ssh_run_cmd(g1_IP, 'sudo ifconfig eth1 up')
+      remote_cmd.ssh_run_cmd(g2_IP, 'sudo ifconfig eth2 up')
+      remote_cmd.ssh_run_cmd(g3_IP, 'sudo ifconfig eth2 up')
+
+      log.info('install rules on gateways')
+      _config_gateway(1)
 
 def _config_gateway(vn_id):
       print 'config gateways'
@@ -112,20 +122,18 @@ def _config_gateway(vn_id):
 
 def _iperf(IP, cmd):
   t = threading.Thread(target=remote_cmd.ssh_run_cmd, args=(IP, cmd, ))
-  _config_gateway(1)
   time.sleep(5)
   t.start()
   #remote_cmd.ssh_run_cmd(IP, cmd)
 
 # start migration: copy the rules from old switches to new switches
 def start_migration():
-  print "Start migration..."
+  log.info("Start migration...")
 
-  # bring down the interfaces at gateways 
-  print 'bring down the interfaces in gateways'
-  remote_cmd.ssh_run_cmd(g1_IP,'sudo ifconfig eth1 down')
-  remote_cmd.ssh_run_cmd(g2_IP,'sudo ifconfig eth2 down')
-  remote_cmd.ssh_run_cmd(g3_IP,'sudo ifconfig eth2 down')
+  log.info("bring down interfaces in gateways")
+  remote_cmd.ssh_run_cmd(g1_IP, 'sudo ifconfig eth1 down')
+  remote_cmd.ssh_run_cmd(g2_IP, 'sudo ifconfig eth2 down')
+  remote_cmd.ssh_run_cmd(g3_IP, 'sudo ifconfig eth2 down')
 
   for connection in core.openflow._connections.values():
     if connection.dpid == ovs1_dpid or connection.dpid == ovs2_dpid or connection.dpid == ovs3_dpid:
@@ -160,14 +168,18 @@ def _handle_portstats_received (event):
 # insert rules to new switch
 def _insert_flow_entries(event):
   stats = flow_stats_to_list(event.stats)
-  port_dict={}
+  port_dict = {}
+  insert_switch_id = 0
   if event.connection.dpid == ovs1_dpid:
         port_dict={3:2,1:3,2:1}
+        insert_switch_id = ovs4_dpid
   elif event.connection.dpid == ovs2_dpid:
         port_dict={1:2,2:1}
+        insert_switch_id = ovs5_dpid
   elif event.connection.dpid == ovs3_dpid:
-        port_dict={1:1,2:1}
-  _insert_flow_into_switch(stats, event.connection.dpid, port_dict)
+        port_dict={1:2,2:1}
+        insert_switch_id = ovs6_dpid
+  _insert_flow_into_switch(stats, insert_switch_id, port_dict)
 
 def _insert_flow_into_switch(flows, switch_dpid, port_dict):
   for connection in core.openflow._connections.values():
@@ -190,12 +202,6 @@ def _handle_flow_ready(event):
 
   if barrier_count == 3:     
         _config_gateway(2)
-
-        #bring down & up interface at gateways                                 
-        print "bring down & up interfaces at gateways"
-        remote_cmd.ssh_run_cmd(g1_IP, 'sudo ifconfig eth2 up')
-        remote_cmd.ssh_run_cmd(g2_IP, 'sudo ifconfig eth3 up')
-        remote_cmd.ssh_run_cmd(g3_IP, 'sudo ifconfig eth3 up')
   
   
 def _drop(duration, connection, inport):
