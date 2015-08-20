@@ -39,13 +39,23 @@ log = core.getLogger()
 
 # migrate virtual network
 def _migrate_vn ():
-  
-      client_cmd = 'iperf -c 10.10.1.4 -t 100'
+      threading.Timer(15, _initial_config).start()
+
+      client_cmd = 'iperf -c 10.10.1.6 -u -t 100'
       threading.Timer(20, _iperf, args=(host1_IP, client_cmd, )).start()
 
       # start migration after 1 minute
       print "start timer"
       threading.Timer(60, start_migration).start()
+
+def _initial_config():
+      log.info('bring up interfaces in gateways')
+      remote_cmd.ssh_run_cmd(g1_IP, 'sudo ifconfig eth2 up')
+      remote_cmd.ssh_run_cmd(g2_IP, 'sudo ifconfig eth3 up')
+      remote_cmd.ssh_run_cmd(g3_IP, 'sudo ifconfig eth1 up')
+
+      log.info('install rules on gateways')
+      _config_gateway(1)
 
 def _config_gateway(vn_id):
       print 'config gateways'
@@ -112,17 +122,15 @@ def _config_gateway(vn_id):
 
 def _iperf(IP, cmd):
   t = threading.Thread(target=remote_cmd.ssh_run_cmd, args=(IP, cmd, ))
-  _config_gateway(1)
   time.sleep(5)
   t.start()
-  #remote_cmd.ssh_run_cmd(IP, cmd)
 
 # start migration: copy the rules from old switches to new switches
 def start_migration():
-  print "Start migration..."
+  log.info("Start migration...")
 
   # bring down the interfaces at gateways 
-  print 'bring down the interfaces in ovs-1'
+  log.info('bring down the interfaces in gateways')
   remote_cmd.ssh_run_cmd(g1_IP,'sudo ifconfig eth2 down')
   remote_cmd.ssh_run_cmd(g2_IP,'sudo ifconfig eth3 down')
   remote_cmd.ssh_run_cmd(g3_IP,'sudo ifconfig eth1 down')
@@ -160,22 +168,27 @@ def _handle_portstats_received (event):
 # insert rules to new switch
 def _insert_flow_entries(event):
   stats = flow_stats_to_list(event.stats)
+  port_dict = {}
+  insert_switch_id = 0
   if event.connection.dpid == ovs1_dpid:
-    for flow in stats:
-          log.info("flow %s:", flow)
-          _insert_flow_into_switch(stats, ovs4_dpid, True)
+        port_dict = {1:2,2:1,3:3}
+        insert_switch_id = ovs4_dpid
   elif event.connection.dpid == ovs2_dpid:
-    _insert_flow_into_switch(stats, ovs5_dpid, False)
+        port_dict = {1:2,2:1}
+        insert_switch_id = ovs5_dpid
   elif event.connection.dpid == ovs3_dpid:
-    _insert_flow_into_switch(stats, ovs6_dpid, False)
+        port_dict = {1:1,2:2}
+        insert_switch_id = ovs6_dpid
+  _insert_flow_into_switch(stats, insert_switch_id,port_dict)
 
-def _insert_flow_into_switch(flows, switch_dpid, swap_inport=False):
+
+def _insert_flow_into_switch(flows, switch_dpid, port_dict):
   for connection in core.openflow._connections.values():
     if connection.dpid == switch_dpid:
       log.info("install rule on switch %s", connection.dpid)
       for flow in flows:
         #log.info("flow: %s", flow)
-        msg = _flow_stats_to_flow_mod(flow, swap_inport)
+        msg = _flow_stats_to_flow_mod(flow, port_dict)
         #log.info("msg: %s", msg)
         connection.send(msg)
 
@@ -208,10 +221,10 @@ def _drop(duration, connection, inport):
     msg.hard_timeout = duration[1]
     connection.send(msg)
 
-def _flow_stats_to_flow_mod (flow, swap_inport=False):
+def _flow_stats_to_flow_mod (flow, port_dict):
   actions = flow.get('actions', [])
   if not isinstance(actions, list): actions = [actions]
-  actions = [_dict_to_action(a, swap_inport) for a in actions]
+  actions = [_dict_to_action(a, port_dict) for a in actions]
   if 'output' in flow:   
     a = of.ofp_action_output(port=_fix_of_int(flow['output']))
     po.actions.append(a)
@@ -226,7 +239,7 @@ def _flow_stats_to_flow_mod (flow, swap_inport=False):
       #in_port = 2
     #elif in_port == 2:
       #in_port = 1
-  fm.match.in_port = in_port
+  fm.match.in_port = port_dict[in_port]
 
   fm.match.dl_src = EthAddr(match_list.get('dl_src'))
   fm.match.dl_dst = EthAddr(match_list.get('dl_dst'))
@@ -252,8 +265,11 @@ def _flow_stats_to_flow_mod (flow, swap_inport=False):
       #i = 0
   return fm
 
-def _dict_to_action (d, swap_port) :
+def _dict_to_action (d, port_dict) :
   d = d.copy()
+  
+  if 'port' in d:
+        d['port'] = port_dict[d['port']]
   #if swap_port:
         #if 'port' in d:
               #if d['port'] == 1:
