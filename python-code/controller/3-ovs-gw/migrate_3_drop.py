@@ -41,7 +41,7 @@ log = core.getLogger()
 def _migrate_vn ():
       threading.Timer(15, _initial_config).start()
 
-      client_cmd = 'iperf -c 10.10.1.6 -u -t 100'
+      client_cmd = 'iperf -c 10.10.1.4 -u -b 90m -t 100'
       threading.Timer(20, _iperf, args=(host1_IP, client_cmd, )).start()
 
       # start migration after 1 minute
@@ -127,13 +127,8 @@ def _iperf(IP, cmd):
 
 # start migration: copy the rules from old switches to new switches
 def start_migration():
-  log.info("Start migration...")
-
-  # bring down the interfaces at gateways 
-  log.info('bring down the interfaces in gateways')
-  remote_cmd.ssh_run_cmd(g1_IP,'sudo ifconfig eth2 down')
-  remote_cmd.ssh_run_cmd(g2_IP,'sudo ifconfig eth3 down')
-  remote_cmd.ssh_run_cmd(g3_IP,'sudo ifconfig eth1 down')
+  
+  log.info('start copying flow tables...')
 
   for connection in core.openflow._connections.values():
     if connection.dpid == ovs1_dpid or connection.dpid == ovs2_dpid or connection.dpid == ovs3_dpid:
@@ -201,16 +196,36 @@ def _handle_flow_ready(event):
   global barrier_count
   barrier_count = barrier_count+1
 
-  if barrier_count == 3:     
+  if barrier_count == 3:
+        log.info("Start migration...")
+        start_time = time.time()
+
+        # bring down the interfaces at gateways 
+        log.info('bring down the interfaces in gateways')
+        cmd_dict = {g1_IP: 'sudo ifconfig eth2 up', g2_IP:'sudo ifconfig eth3 up', g3_IP:'sudo ifconfig eth1 up'}
+        _exc_cmd_in_gw(cmd_dict)
+ 
+        log.info('install rules on gw to redirect traffic')
         _config_gateway(2)
 
-        #bring down & up interface at gateways                                 
-        print "bring down & up interfaces at gateways"
-        remote_cmd.ssh_run_cmd(g1_IP, 'sudo ifconfig eth3 up')
-        remote_cmd.ssh_run_cmd(g2_IP, 'sudo ifconfig eth1 up')
-        remote_cmd.ssh_run_cmd(g3_IP, 'sudo ifconfig eth3 up')
-  
-  
+        #bring down & up interface at gateways
+        cmd_dict = {g1_IP: 'sudo ifconfig eth3 up', g2_IP:'sudo ifconfig eth1 up', g3_IP:'sudo ifconfig eth3 up'}
+        log.info("bring up interfaces at gateways")
+        _exc_cmd_in_gw(cmd_dict)
+
+        log.info('migration ends')
+        migration_time = time.time() - start_time
+        log.info('%s seconds', migration_time)
+
+def _exc_cmd_in_gw(gw_cmd_dic):
+      threads = []
+      for key, value in gw_cmd_dic.iteritems():
+            t = threading.Thread(target = remote_cmd.ssh_run_cmd, args=(key, value, ))
+            t.start()
+            threads.append(t)
+      #for t in threads:
+            #t.join()
+
 def _drop(duration, connection, inport):
   if duration is not None:
     if not isinstance(duration, tuple):
