@@ -164,12 +164,13 @@ def _iperf(IP, cmd):
 # start migration: copy the rules from old switches to new switches
 def start_migration():
   log.info("Start migration...")
+  global start_time
+  start_time = time.time()
 
   log.info('move ovs1')
 
   log.info('bring down the interfaces in ovs1')
-  remote_cmd.ssh_run_cmd(ovs1_IP, 'sudo ifconfig eth2 down')
-  remote_cmd.ssh_run_cmd(ovs1_IP, 'sudo ifconfig eth3 down')
+  remote_cmd.ssh_run_cmd(ovs1_IP, 'sudo ifconfig eth2 down;sudo ifconfig eth3 down')
 
   log.info('request flow tables in ovs-1')
   for connection in core.openflow._connections.values():
@@ -328,7 +329,10 @@ def _handle_flow_ready(event):
               if connection.dpid == g3_dpid:
                     _gw_to_vn(connection, 1, 3, 2)
 
-                                 
+        log.info('migration finished')
+        global start_time
+        migration_time = time.time() - start_time
+        log.info("%s seconds", migration_time)
                   
 def _drop(duration, connection, inport):
   if duration is not None:
