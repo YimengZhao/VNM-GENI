@@ -43,8 +43,9 @@ def _migrate_vn ():
       global first_time
       if first_time:
             print 'start iperf'
-            client_cmd = 'iperf -c 10.10.1.6 -u -b 30m -t 610'
-            _iperf(host1_IP, client_cmd)
+            client_cmd = 'iperf -c 10.10.1.6 -u -b 40m -t 610'
+            _iperf(host2_IP, client_cmd)
+            #_iperf(host2_IP, client_cmd)
             first_time = False
 
       global barrier_count
