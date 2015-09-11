@@ -13,7 +13,7 @@ import time
 
 import threading
 import remote_cmd
-from gw_config import *
+from gw_config_rule_seq import *
 
 # include as part of the betta branch
 from pox.openflow.of_json import *
@@ -43,7 +43,7 @@ def _migrate_vn ():
       global first_time
       if first_time:
             print 'start iperf'
-            client_cmd = 'iperf -c 10.10.1.1 -u -b 40m -t 610'
+            client_cmd = 'iperf -c 10.10.1.6 -u -b 40m -t 610'
             _iperf(host2_IP, client_cmd)
             #_iperf(host2_IP, client_cmd)
             first_time = False
@@ -225,5 +225,6 @@ def launch ():
   global first_time
   first_time = True
   _exp_prepare()
+  #_migrate_vn()
   Timer(60, _migrate_vn, recurring=True)
 
