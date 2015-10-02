@@ -36,7 +36,7 @@ copy_barrier_id = 0x80000000
 log = core.getLogger()
 
 def _exp_prepare():
-      threading.Timer(15, _config_gateway, args=(1, )).start()
+      threading.Timer(15, _config_gateway, args=(1, False, )).start()
       
 # migrate virtual network
 def _migrate_vn ():
@@ -44,23 +44,23 @@ def _migrate_vn ():
       if first_time:
             print 'start iperf'
             client_cmd = 'iperf -c 10.10.1.1 -u -b 40m -t 610'
-            _iperf(host2_IP, client_cmd)
+            #_iperf(host2_IP, client_cmd)
             #_iperf(host2_IP, client_cmd)
             first_time = False
 
       global barrier_count
       barrier_count = 0
 
-      _config_gateway(1)
+      _config_gateway(1, True)
 
       # start migration after 1 minute
       print "start migration after 30s"
       #threading.Timer(30, start_migration).start()
 
 
-def _config_gateway(vn_id):
+def _config_gateway(vn_id, enable_asym):
       gw_config = ConfigGWRequest()
-      gw_config._config_gw(vn_id)
+      gw_config._config_gw(vn_id, enable_asym)
 
             
 def _iperf(IP, cmd):

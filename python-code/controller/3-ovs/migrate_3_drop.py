@@ -1,3 +1,4 @@
+
 #!/usr/bin/python
 # Copyright 2015 Yimeng Zhao
 
@@ -12,62 +13,91 @@ import time
 
 import threading
 import remote_cmd
+from gw_config import *
 
 # include as part of the betta branch
 from pox.openflow.of_json import *
+import sys
 
-ovs2_tcpdump_duration = "60s"
 ovs1_dpid = 1
 ovs2_dpid = 2
 ovs3_dpid = 3
 ovs4_dpid = 4
 ovs5_dpid = 5
 ovs6_dpid = 6
-ovs1_IP = '128.163.232.88'
-ovs3_IP = '128.163.232.90'
-ovs4_IP = '128.163.232.83'
-ovs6_IP = '128.163.232.87'
-host1_IP = '172.17.5.25'
-host2_IP = '172.17.5.29'
-host3_IP = '172.17.5.30'
-barrier_count = 0
+host1_IP = '172.17.2.11'
+host2_IP = '172.17.5.4'
+host3_IP = '172.17.5.5'
+g1_IP = '128.163.232.71'
+g2_IP = '128.163.232.72'
+g3_IP = '128.163.232.73'
+copy_barrier_id = 0x80000000
 
 log = core.getLogger()
 
-
+def _exp_prepare():
+      threading.Timer(15, _config_gateway, args=(1,)).start()
+      
 # migrate virtual network
 def _migrate_vn ():
-  
-      client_cmd = 'iperf -c 192.168.10.3 -u -t 100'
-      threading.Timer(20, _iperf, args=(host1_IP, client_cmd, )).start()
+      global first_time
+      if first_time:
+            global exp_count
+            exp_count = 0
+            global client_IP
+            client_IP = host2_IP
+            first_time = False
+
+      global barrier_count
+      barrier_count = 0
+
+      _config_gateway(1)
+
+      global client_cmd
+      if exp_count < 11:
+            client_cmd = 'sudo python udp_client.py 10'
+      elif exp_count < 21:
+            client_cmd = 'sudo python udp_client.py 30'
+      elif exp_count < 31:
+            client_cmd = 'sudo python udp_client.py 60'
+      elif exp_count < 42:
+            client_cmd = 'sudo python udp_client.py 200'
+      else: 
+            print 'exit'
+            sys.exit(1)
 
       # start migration after 1 minute
-      print "start timer"
-      threading.Timer(60, start_migration).start()
+      print "start migration after 30s"
+      threading.Timer(30, start_migration).start()
+      threading.Timer(25, _iperf, args=(client_IP, client_cmd, )).start()
 
+
+def _config_gateway(vn_id):
+      gw_config = ConfigGWRequest()
+      gw_config._config_gw(vn_id)
+
+            
 def _iperf(IP, cmd):
-  t = threading.Thread(target=remote_cmd.ssh_run_cmd, args=(IP, cmd, ))
-  t.start()
-  #remote_cmd.ssh_run_cmd(IP, cmd)
+      print 'start iperf'
+      t = threading.Thread(target=remote_cmd.ssh_run_cmd, args=(IP, cmd, ))
+      t.start()
 
 # start migration: copy the rules from old switches to new switches
 def start_migration():
-  print "Start migration..."
-
-  # bring down the interfaces at ovs-1 and ovs-3 
-  print 'bring down the interfaces in ovs-1'
-  remote_cmd.ssh_run_cmd(ovs1_IP,'sudo sh interface-down.sh')
-  remote_cmd.ssh_run_cmd(ovs3_IP,'sudo sh interface-down.sh')
   
+  log.info('start copying flow tables...')
+
   for connection in core.openflow._connections.values():
     if connection.dpid == ovs1_dpid or connection.dpid == ovs2_dpid or connection.dpid == ovs3_dpid:
       connection.send(of.ofp_stats_request(body=of.ofp_flow_stats_request()))
       log.debug("Sent %i flow/port stats request(s)", len(core.openflow._connections))
 
       # send barrier message to ensure all flows has been installed
-      connection.send(of.ofp_barrier_request(xid=0x80000000))
+      connection.send(of.ofp_barrier_request(xid=copy_barrier_id))
       connection.addListenerByName("BarrierIn", _handle_flow_ready)
-
+      
+      global barrier_count
+      barrier_count += 1
 
 
 # handler to display flow statistics received in JSON format
@@ -92,60 +122,59 @@ def _handle_portstats_received (event):
 # insert rules to new switch
 def _insert_flow_entries(event):
   stats = flow_stats_to_list(event.stats)
+  port_dict = {}
+  insert_switch_id = 0
   if event.connection.dpid == ovs1_dpid:
-    for flow in stats:
-          log.info("flow %s:", flow)
-          _insert_flow_into_switch(stats, ovs4_dpid, True)
+        port_dict = {1:2,2:1,3:3}
+        insert_switch_id = ovs4_dpid
   elif event.connection.dpid == ovs2_dpid:
-    _insert_flow_into_switch(stats, ovs5_dpid, False)
+        port_dict = {1:2,2:1}
+        insert_switch_id = ovs5_dpid
   elif event.connection.dpid == ovs3_dpid:
-    _insert_flow_into_switch(stats, ovs6_dpid, False)
+        port_dict = {1:1,2:2}
+        insert_switch_id = ovs6_dpid
+  _insert_flow_into_switch(stats, insert_switch_id,port_dict)
 
-def _insert_flow_into_switch(flows, switch_dpid, swap_inport=False):
+
+def _insert_flow_into_switch(flows, switch_dpid, port_dict):
   for connection in core.openflow._connections.values():
     if connection.dpid == switch_dpid:
       log.info("install rule on switch %s", connection.dpid)
       for flow in flows:
         #log.info("flow: %s", flow)
-        msg = _flow_stats_to_flow_mod(flow, swap_inport)
+        msg = _flow_stats_to_flow_mod(flow, port_dict)
         #log.info("msg: %s", msg)
         connection.send(msg)
 
       
 # handler to bring down the interfaces in new VNs after all flows are installed
 def _handle_flow_ready(event):
-  if event.ofp.xid != 0x80000000:
-    return
-  log.debug("barrier msg received from %s: ", event.connection.dpid)
-  global barrier_count
-  barrier_count = barrier_count+1
-
-  if barrier_count == 3:
-        log.info("install drop rule for 1s")
-        for connection in core.openflow._connections.values():
-              if connection.dpid == ovs4_dpid or connection.dpid == ovs6_dpid:
-                    _drop(2, connection, 1)
-                    _drop(2, connection, 2)
-        # bring up the interfaces at ovs-4 and ovs-6                                
-        print 'bring up the interfaces in ovs-4 and ovs-6'
-        remote_cmd.ssh_run_cmd(ovs4_IP,'sudo sh interface-up.sh')
-        remote_cmd.ssh_run_cmd(ovs6_IP,'sudo sh interface-up.sh')
+  if event.ofp.xid == copy_barrier_id:
+        #log.info("barrier msg received from %s: ", event.connection.dpid)
   
-  
-def _drop(duration, connection, inport):
-  if duration is not None:
-    if not isinstance(duration, tuple):
-      duration = (duration, duration)
-    msg = of.ofp_flow_mod()
-    msg.in_port = inport
-    msg.idle_timeout = duration[0]
-    msg.hard_timeout = duration[1]
-    connection.send(msg)
+        global barrier_count
+        if barrier_count <= 0:
+              return
 
-def _flow_stats_to_flow_mod (flow, swap_inport=False):
+        barrier_count -= 1
+
+        if barrier_count <= 0:
+              log.info("Start migration...")
+
+              log.info('install rules on gw to redirect traffic')
+              _config_gateway(2)
+
+              barrier_count = 0
+              
+              threading.Timer(25, _iperf, args=(client_IP, client_cmd, )).start()
+
+              global exp_count
+              exp_count += 1
+
+def _flow_stats_to_flow_mod (flow, port_dict):
   actions = flow.get('actions', [])
   if not isinstance(actions, list): actions = [actions]
-  actions = [_dict_to_action(a, swap_inport) for a in actions]
+  actions = [_dict_to_action(a, port_dict) for a in actions]
   if 'output' in flow:   
     a = of.ofp_action_output(port=_fix_of_int(flow['output']))
     po.actions.append(a)
@@ -155,12 +184,7 @@ def _flow_stats_to_flow_mod (flow, swap_inport=False):
 
 
   in_port = match_list.get('in_port')
-  #if swap_inport:
-    #if in_port == 1:
-      #in_port = 2
-    #elif in_port == 2:
-      #in_port = 1
-  fm.match.in_port = in_port
+  fm.match.in_port = port_dict[in_port]
 
   fm.match.dl_src = EthAddr(match_list.get('dl_src'))
   fm.match.dl_dst = EthAddr(match_list.get('dl_dst'))
@@ -186,8 +210,11 @@ def _flow_stats_to_flow_mod (flow, swap_inport=False):
       #i = 0
   return fm
 
-def _dict_to_action (d, swap_port) :
+def _dict_to_action (d, port_dict) :
   d = d.copy()
+  
+  if 'port' in d:
+        d['port'] = port_dict[d['port']]
   #if swap_port:
         #if 'port' in d:
               #if d['port'] == 1:
@@ -215,7 +242,8 @@ def launch ():
     _handle_portstats_received) 
 
   # migrate virtual network
-  _migrate_vn()
+  global first_time
+  first_time = True
+  _exp_prepare()
+  Timer(60, _migrate_vn, recurring=True)
 
-  # timer set to execute every five seconds
-  #Timer(5, _timer_func, recurring=True)

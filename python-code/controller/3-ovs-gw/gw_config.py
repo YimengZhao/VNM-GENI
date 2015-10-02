@@ -36,7 +36,7 @@ class GWRequest():
     con.addListenerByName("BarrierIn", self._handle_BarrierIn)
 
   def _handle_BarrierIn(self, event):
-    log.info("receive barrier msg from gw %s", event.connection.dpid)
+    #log.info("receive barrier msg from gw %s", event.connection.dpid)
     if event.ofp.xid != self.xid:
       return
     self.count -= 1
@@ -71,8 +71,8 @@ class ConfigGWRequest ():
           out_port = 3
           drop_port = 1
         elif connection.dpid == g3_dpid:
-          in_port = 1
-          out_port = 2
+          in_port = 2
+          out_port = 1
           drop_port = 3
         else:
           continue
@@ -96,13 +96,7 @@ class ConfigGWRequest ():
 
       msg3 = of.ofp_flow_mod()
       msg3.match.in_port = drop_port
-      #msgs.append(msg3)
-
-      msg1 = of.ofp_flow_mod()
-      msg1.match.in_port = in_port
-      action = of.ofp_action_output(port = out_port)
-      msg1.actions.append(action)
-      msgs.append(msg1)
+      msgs.append(msg3)
 
       msg2 = of.ofp_flow_mod()
       msg2.match.in_port = out_port

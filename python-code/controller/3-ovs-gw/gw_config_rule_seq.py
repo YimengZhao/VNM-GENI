@@ -30,14 +30,13 @@ class GWRequest():
     for msg in msgs:
       msg.xid = self.xid
       con.send(msg)
-      print msg
 
     self.count += 1
     con.send(of.ofp_barrier_request(xid=self.xid))
     con.addListenerByName("BarrierIn", self._handle_BarrierIn)
 
   def _handle_BarrierIn(self, event):
-    log.info("receive barrier msg from gw %s", event.connection.dpid)
+    #log.info("receive barrier msg from gw %s", event.connection.dpid)
     if event.ofp.xid != self.xid:
       return
     self.count -= 1
@@ -62,7 +61,7 @@ class VnGwPortStruct():
 class ConfigGWRequest ():
   def __init__(self):
     self.gw_record = {g1_dpid:0, g2_dpid:0, g3_dpid:0}
-    vn1_port_map  = {g1_dpid: GwRuleStruct(1, 2, 3), g2_dpid: GwRuleStruct(2, 3, 1), g3_dpid: GwRuleStruct(1, 2, 3)}
+    vn1_port_map  = {g1_dpid: GwRuleStruct(1, 2, 3), g2_dpid: GwRuleStruct(2, 3, 1), g3_dpid: GwRuleStruct(2, 1, 3)}
     vn2_port_map  = {g1_dpid: GwRuleStruct(1, 3, 2), g2_dpid: GwRuleStruct(2, 1, 3), g3_dpid: GwRuleStruct(2, 3, 1)}
     self.port_map = VnGwPortStruct(vn1_port_map, vn2_port_map)
     self.install_first_rule = True
@@ -90,7 +89,6 @@ class ConfigGWRequest ():
     msg1.match.in_port = self.port_map.port_map[vn_id][connection.dpid].in_port
     action = of.ofp_action_output(port = self.port_map.port_map[vn_id][connection.dpid].out_port)
     msg1.actions.append(action)
-    print msg1
     msgs.append(msg1)
 
     return msgs
@@ -134,4 +132,8 @@ def _write_to_log(log_file_dir, data):
   target.write(str(data))
   target.write('\n')
   target.close()
+
+
+
+
 
