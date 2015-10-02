@@ -17,7 +17,7 @@ from gw_config import *
 
 # include as part of the betta branch
 from pox.openflow.of_json import *
-
+import sys
 
 ovs1_dpid = 1
 ovs2_dpid = 2
@@ -36,36 +36,51 @@ copy_barrier_id = 0x80000000
 log = core.getLogger()
 
 def _exp_prepare():
-      threading.Timer(15, _config_gateway, args=(1, False, )).start()
+      threading.Timer(15, _config_gateway, args=(1,)).start()
       
 # migrate virtual network
 def _migrate_vn ():
       global first_time
       if first_time:
-            print 'start iperf'
-            client_cmd = 'iperf -c 10.10.1.6 -u -b 30m -t 610'
-            #_iperf(host1_IP, client_cmd)
-            #_iperf(host2_IP, client_cmd)
+            global exp_count
+            exp_count = 0
+            global client_IP
+            client_IP = host2_IP
             first_time = False
 
       global barrier_count
       barrier_count = 0
 
-      _config_gateway(1, True)
+      _config_gateway(1)
+
+      global client_cmd
+      if exp_count < 11:
+            client_cmd = 'sudo python udp_client.py 10'
+      elif exp_count < 21:
+            client_cmd = 'sudo python udp_client.py 30'
+      elif exp_count < 31:
+            client_cmd = 'sudo python udp_client.py 60'
+      elif exp_count < 42:
+            client_cmd = 'sudo python udp_client.py 200'
+      else: 
+            print 'exit'
+            sys.exit(1)
 
       # start migration after 1 minute
       print "start migration after 30s"
       threading.Timer(30, start_migration).start()
+      threading.Timer(25, _iperf, args=(client_IP, client_cmd, )).start()
 
 
-def _config_gateway(vn_id, enable_asym):
+def _config_gateway(vn_id):
       gw_config = ConfigGWRequest()
-      gw_config._config_gw(vn_id, enable_asym)
+      gw_config._config_gw(vn_id)
 
             
 def _iperf(IP, cmd):
-  t = threading.Thread(target=remote_cmd.ssh_run_cmd, args=(IP, cmd, ))
-  t.start()
+      print 'start iperf'
+      t = threading.Thread(target=remote_cmd.ssh_run_cmd, args=(IP, cmd, ))
+      t.start()
 
 # start migration: copy the rules from old switches to new switches
 def start_migration():
@@ -135,7 +150,7 @@ def _insert_flow_into_switch(flows, switch_dpid, port_dict):
 # handler to bring down the interfaces in new VNs after all flows are installed
 def _handle_flow_ready(event):
   if event.ofp.xid == copy_barrier_id:
-        log.info("barrier msg received from %s: ", event.connection.dpid)
+        #log.info("barrier msg received from %s: ", event.connection.dpid)
   
         global barrier_count
         if barrier_count <= 0:
@@ -150,6 +165,11 @@ def _handle_flow_ready(event):
               _config_gateway(2)
 
               barrier_count = 0
+              
+              threading.Timer(25, _iperf, args=(client_IP, client_cmd, )).start()
+
+              global exp_count
+              exp_count += 1
 
 def _flow_stats_to_flow_mod (flow, port_dict):
   actions = flow.get('actions', [])
