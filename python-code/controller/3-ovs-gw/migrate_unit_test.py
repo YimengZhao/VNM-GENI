@@ -56,13 +56,13 @@ class VnMigrateExp:
               _config_gateway(1, '')
 
 
-              print 'start h1-h2'
-              self._expset_start('h1', 'h2')
+              '''print 'start h1-h2'
+              self._expset_start('h1', 'h2')'''
 
               print 'start h1-h3'
               self._expset_start('h1', 'h3')
 
-              print 'start h2-h1'
+              '''print 'start h2-h1'
               self._expset_start('h2', 'h1')
 
               print 'start h2-h3'
@@ -72,12 +72,12 @@ class VnMigrateExp:
               self._expset_start('h3', 'h1')
 
               print 'start h3-h2'
-              self._expset_start('h3', 'h2')
+              self._expset_start('h3', 'h2')'''
 
 
 
        def _expset_start(self, client, server):
-              interval = 60*(11*4+2)
+              interval = 60*(11 + 1)
               exp_interval = 60
 
               server_IP = ''
@@ -89,11 +89,11 @@ class VnMigrateExp:
                      server_IP = host3_IP
 
               log_duration = interval
-              log_file = './iperf-result/' + client + '-' + server + '-base.log' 
+              '''log_file = './iperf-result/' + client + '-' + server + '-base.log' 
               cmd = 'sudo sh udp_server.sh ' + log_file + ' ' + str(log_duration)
               self._start_udpserver(server_IP, cmd)
               self._exp_start(ExpType.base, client, server)
-              time.sleep(exp_interval)
+              time.sleep(exp_interval)'''
               
               log_file = './iperf-result/' + client + '-' + server + '-sym.log' 
               cmd = 'sudo sh udp_server.sh ' + log_file + ' ' + str(log_duration)
@@ -101,7 +101,7 @@ class VnMigrateExp:
               self._exp_start(ExpType.sym, client, server)
               time.sleep(exp_interval)
 
-              log_file = './iperf-result/' + client + '-' + server + '-asym.log' 
+              '''log_file = './iperf-result/' + client + '-' + server + '-asym.log' 
               cmd = 'sudo sh udp_server.sh ' + log_file + ' ' + str(log_duration)
               self._start_udpserver(server_IP, cmd)
               self._exp_start(ExpType.asym, client, server)
@@ -111,13 +111,13 @@ class VnMigrateExp:
               cmd = 'sudo sh udp_server.sh ' + log_file + ' ' + str(log_duration)
               self._start_udpserver(server_IP, cmd)
               self._exp_start(ExpType.opt, client, server)
-              time.sleep(exp_interval)
+              time.sleep(exp_interval)'''
 
        def _exp_start(self, exp_type, client, server):
               interval = 60
               count = 11
 
-              rt1 = RepeatedTimer(interval, self._migrate_vn, count, exp_type, client, server, '10')
+              '''rt1 = RepeatedTimer(interval, self._migrate_vn, count, exp_type, client, server, '10')
               rt1.start()
               rt1.wait()
 
@@ -127,7 +127,7 @@ class VnMigrateExp:
 
               rt3 = RepeatedTimer(interval, self._migrate_vn, count, exp_type, client, server, '60')
               rt3.start()
-              rt3.wait()
+              rt3.wait()'''
 
               rt4 = RepeatedTimer(interval, self._migrate_vn, count, exp_type, client, server, '200')
               rt4.start()
@@ -168,19 +168,17 @@ class VnMigrateExp:
               if exp_type != ExpType.base:
                      print "start migration after 30s"
                      threading.Timer(30, self.start_migration).start()
-              threading.Timer(20, self._start_gw_log, args=(g1_IP, gw_log_pref, )).start()
-              threading.Timer(20, self._start_gw_log, args=(g2_IP, gw_log_pref, )).start()
-              threading.Timer(20, self._start_gw_log, args=(g3_IP, gw_log_pref, )).start()
-             
+              threading.Timer(10, self._start_gw_log, args=(g1_IP, gw_log_pref, )).start()
+              threading.Timer(10, self._start_gw_log, args=(g2_IP, gw_log_pref, )).start()
+              threading.Timer(10, self._start_gw_log, args=(g3_IP, gw_log_pref, )).start()
               threading.Timer(20, self._start_ovs_log, args=(ovs1_IP, gw_log_pref, )).start()
               threading.Timer(20, self._start_ovs_log, args=(ovs2_IP, gw_log_pref, )).start()
-              threading.Timer(20, self._start_ovs_log, args=(ovs3_IP, gw_log_pref, )).start()
-
+              threading.Timer(20, self._start_ovs_log, args=(ovs3_IP, gw_log_pref, )).start()   
+             
               threading.Timer(20, self._start_ovs_log, args=(ovs4_IP, gw_log_pref, )).start()
               threading.Timer(20, self._start_ovs_log, args=(ovs5_IP, gw_log_pref, )).start()
-              threading.Timer(20, self._start_ovs_log, args=(ovs6_IP, gw_log_pref, )).start()
-
-
+              threading.Timer(20, self._start_ovs_log, args=(ovs6_IP, gw_log_pref, )).start()   
+             
               client_cmd = 'sudo python udp_client.py ' + server_IP + ' ' + data_rate + ' ' + client_log_dir              
               threading.Timer(25, self._start_udpclient, args=(client_IP, client_cmd, )).start()
 
@@ -206,7 +204,7 @@ class VnMigrateExp:
               dump_file_1 = dump_file_pref + '-eth1.log'
               dump_file_2 = dump_file_pref + '-eth2.log'
               dump_file_3 = dump_file_pref + '-eth3.log'
-              cmd = 'sudo sh tcpdump.sh ' + dump_file_1 + ' ' + dump_file_2 + ' ' + dump_file_3 + ' 20s'
+              cmd = 'sudo sh tcpdump.sh ' + dump_file_1 + ' ' + dump_file_2 + ' ' + dump_file_3 + ' 40s'
               t = threading.Thread(target=remote_cmd.ssh_run_cmd, args=(IP, cmd,))
               t.start()
 

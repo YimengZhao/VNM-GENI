@@ -12,7 +12,7 @@ log = core.getLogger()
 g1_dpid = 7
 g2_dpid = 8
 g3_dpid = 9
-LOG_FILE_DIR = 'vnm_log_1.txt'
+
 
 class GWRequest():
   def __init__(self):
@@ -58,13 +58,14 @@ class VnGwPortStruct():
     self.port_map = {1:vn1_port_map, 2:vn2_port_map}
   
 
-class ConfigGWRequest ():
-  def __init__(self):
+class ConfigGWRequest_opt ():
+  def __init__(self, log_file_dir):
     self.gw_record = {g1_dpid:0, g2_dpid:0, g3_dpid:0}
     vn1_port_map  = {g1_dpid: GwRuleStruct(1, 2, 3), g2_dpid: GwRuleStruct(2, 3, 1), g3_dpid: GwRuleStruct(2, 1, 3)}
     vn2_port_map  = {g1_dpid: GwRuleStruct(1, 3, 2), g2_dpid: GwRuleStruct(2, 1, 3), g3_dpid: GwRuleStruct(2, 3, 1)}
     self.port_map = VnGwPortStruct(vn1_port_map, vn2_port_map)
     self.install_first_rule = True
+    self.LOG_FILE_DIR = log_file_dir
 
   def _config_gw (self, vn_id):
     self.vn_id = vn_id
@@ -107,7 +108,6 @@ class ConfigGWRequest ():
     self.gw_record[sw_dpid] = 1
     for key, value in self.gw_record.iteritems():
       if value == 0:
-        print 'not ready'
         return
     if self.install_first_rule == True:
        for connection in core.openflow._connections.values():
@@ -125,7 +125,7 @@ class ConfigGWRequest ():
       log.info('migration ends')
       migration_time = time.time() - self.start_time
       log.info('%s seconds', migration_time)
-      _write_to_log(LOG_FILE_DIR, migration_time)
+      _write_to_log(self.LOG_FILE_DIR, migration_time)
  
 def _write_to_log(log_file_dir, data):
   target = open(log_file_dir, 'a')

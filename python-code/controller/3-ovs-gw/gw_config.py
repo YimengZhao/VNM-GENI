@@ -12,7 +12,7 @@ log = core.getLogger()
 g1_dpid = 7
 g2_dpid = 8
 g3_dpid = 9
-LOG_FILE_DIR = 'vnm_log.txt'
+
 
 class GWRequest():
   def __init__(self):
@@ -47,14 +47,15 @@ class GWRequest():
   def bind_to(self, callback):
     self.callback = callback
     
-class ConfigGWRequest ():
-  def __init__(self):
+class ConfigGWRequest_sym():
+  def __init__(self, log_file):
     self.gw_record = {g1_dpid:0, g2_dpid:0, g3_dpid:0}
+    self.LOG_FILE_DIR = log_file
 
-  def _config_gw (self, vn_id):
+  def _config_gw (self, vn_id, enable_asym):
     self.start_time = time.time()
 
-    log.info('start configuring gateways in to vn %s', vn_id)
+    log.debug('start configuring gateways in to vn %s', vn_id)
     in_port = 0
     out_port = 0
     drop_port = 0
@@ -94,9 +95,10 @@ class ConfigGWRequest ():
         
       msgs = []
 
-      msg3 = of.ofp_flow_mod()
-      msg3.match.in_port = drop_port
-      msgs.append(msg3)
+      if enable_asym == False:
+        msg3 = of.ofp_flow_mod()
+        msg3.match.in_port = drop_port
+        msgs.append(msg3)
 
       msg2 = of.ofp_flow_mod()
       msg2.match.in_port = out_port
@@ -104,7 +106,13 @@ class ConfigGWRequest ():
       msg2.actions.append(action)
       msgs.append(msg2)
 
+      msg1 = of.ofp_flow_mod()
+      msg1.match.in_port = in_port
+      action = of.ofp_action_output(port = out_port)
+      msg1.actions.append(action)
+      msgs.append(msg1)
 
+      
       gw_request = GWRequest()
       gw_request.bind_to(self._gw_config_finish)
       gw_request._send_msg(connection, msgs)
@@ -113,14 +121,16 @@ class ConfigGWRequest ():
     self.gw_record[sw_dpid] = 1
     for key, value in self.gw_record.iteritems():
       if value == 0:
-        print 'not ready'
+        #print 'not ready'
         return
     log.info('migration ends')
     migration_time = time.time() - self.start_time
     log.info('%s seconds', migration_time)
-    _write_to_log(LOG_FILE_DIR, migration_time)
+    _write_to_log(self.LOG_FILE_DIR, migration_time)
  
 def _write_to_log(log_file_dir, data):
+  if log_file_dir == '':
+    return
   target = open(log_file_dir, 'a')
   target.write(str(data))
   target.write('\n')
