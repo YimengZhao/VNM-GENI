@@ -95,6 +95,7 @@ class ConfigGWRequest_sym():
         
       msgs = []
 
+      print 'enable_asym: ', enable_asym
       if enable_asym == False:
         msg3 = of.ofp_flow_mod()
         msg3.match.in_port = drop_port

@@ -171,6 +171,7 @@ class VnMigrateExp:
               threading.Timer(10, self._start_gw_log, args=(g1_IP, gw_log_pref, )).start()
               threading.Timer(10, self._start_gw_log, args=(g2_IP, gw_log_pref, )).start()
               threading.Timer(10, self._start_gw_log, args=(g3_IP, gw_log_pref, )).start()
+
               threading.Timer(20, self._start_ovs_log, args=(ovs1_IP, gw_log_pref, )).start()
               threading.Timer(20, self._start_ovs_log, args=(ovs2_IP, gw_log_pref, )).start()
               threading.Timer(20, self._start_ovs_log, args=(ovs3_IP, gw_log_pref, )).start()   
@@ -312,12 +313,13 @@ def _handle_flow_ready(event):
         barrier_count -= 1
 
         if barrier_count <= 0:
-              log.info("Start migration...")
+               time.sleep(1)
+               log.info("Start migration...")
 
-              log.info('install rules on gw to redirect traffic')
-              _config_gateway(2, '')
+               log.info('install rules on gw to redirect traffic')
+               _config_gateway(2, '')
 
-              barrier_count = 0
+               barrier_count = 0
 
 
 def _flow_stats_to_flow_mod (flow, port_dict):

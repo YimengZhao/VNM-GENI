@@ -45,6 +45,9 @@ ovs5_IP = '128.163.232.97'
 ovs6_IP = '128.163.232.98'
 copy_barrier_id = 0x80000000
 
+Exp_type = 0
+Ctrl_log_file_pref = ''
+
 log = core.getLogger()
 
 class VnMigrateExp:
@@ -53,31 +56,30 @@ class VnMigrateExp:
               self.name = 'exp'
 
        def multiNode_exp_start(self):
-              _config_gateway(1, '')
+              _config_gateway(1, ExpType.sym, '')
 
 
-              print 'start h1-h2'
-              self._expset_start('h1', 'h2')
+              #print 'start h1-h2'
+              #self._expset_start('h1', 'h2')
 
               print 'start h1-h3'
               self._expset_start('h1', 'h3')
 
-              print 'start h2-h1'
-              self._expset_start('h2', 'h1')
+              #print 'start h2-h1'
+              #self._expset_start('h2', 'h1')
 
-              print 'start h2-h3'
-              self._expset_start('h2', 'h3')
+              #print 'start h2-h3'
+              #self._expset_start('h2', 'h3')
 
               print 'start h3-h1'
               self._expset_start('h3', 'h1')
 
-              print 'start h3-h2'
-              self._expset_start('h3', 'h2')
-
+              #print 'start h3-h2'
+              #self._expset_start('h3', 'h2')
 
 
        def _expset_start(self, client, server):
-              interval = 60*(11*4+2)
+              interval = 60*4+60
               exp_interval = 60
 
               server_IP = ''
@@ -107,7 +109,7 @@ class VnMigrateExp:
               self._exp_start(ExpType.asym, client, server)
               time.sleep(exp_interval)       
 
-              log_file = './iperf-result/' + client + '-' + server + '-opt.log' 
+              log_file = './iperf-result/' + client + '-' + server + '-opt.log'
               cmd = 'sudo sh udp_server.sh ' + log_file + ' ' + str(log_duration)
               self._start_udpserver(server_IP, cmd)
               self._exp_start(ExpType.opt, client, server)
@@ -115,30 +117,25 @@ class VnMigrateExp:
 
        def _exp_start(self, exp_type, client, server):
               interval = 60
-              count = 11
 
-              rt1 = RepeatedTimer(interval, self._migrate_vn, count, exp_type, client, server, '10')
-              rt1.start()
-              rt1.wait()
+              self._migrate_vn(exp_type, client, server, '10')
+              time.sleep(interval)
 
-              rt2 = RepeatedTimer(interval, self._migrate_vn, count, exp_type, client, server, '30')
-              rt2.start()
-              rt2.wait()
+              self._migrate_vn(exp_type, client, server, '30')
+              time.sleep(interval)
 
-              rt3 = RepeatedTimer(interval, self._migrate_vn, count, exp_type, client, server, '60')
-              rt3.start()
-              rt3.wait()
+              self._migrate_vn(exp_type, client, server, '60')
+              time.sleep(interval)
 
-              rt4 = RepeatedTimer(interval, self._migrate_vn, count, exp_type, client, server, '200')
-              rt4.start()
-              rt4.wait()
+              self._migrate_vn(exp_type, client, server, '200')
+              time.sleep(interval)
               print client,'-', server,':',str(exp_type),' finish'
 
              
 
        # migrate virtual network
        def _migrate_vn (self, exp_type, client, server, data_rate):
-              ctrl_log_file_pref = './vnm_log/' + client + '-' + server + '-' + data_rate
+              ctrl_log_file_pref = './vnm_log/' + data_rate
               client_log_dir = './client-sent/' + client + '-' + server + '-' + str(exp_type) + '.log'
               gw_log_pref = './gw_log/' + client + '-' + server + '-' + str(exp_type)
 
@@ -161,7 +158,12 @@ class VnMigrateExp:
               global barrier_count
               barrier_count = 0
 
-              self._config_gateway(1, exp_type, ctrl_log_file_pref)
+              global Exp_type
+              Exp_type = exp_type
+              global Ctrl_log_file_pref
+              Ctrl_log_file_pref = ctrl_log_file_pref
+              print 'gw in vn1 ready:'
+              _config_gateway(1, exp_type, '')
 
 
               # start migration after 1 minute
@@ -183,22 +185,6 @@ class VnMigrateExp:
 
               client_cmd = 'sudo python udp_client.py ' + server_IP + ' ' + data_rate + ' ' + client_log_dir              
               threading.Timer(25, self._start_udpclient, args=(client_IP, client_cmd, )).start()
-
-
-       def _config_gateway(self, vn_id, exp_type, log_file_pref):
-              if exp_type == ExpType.base:
-                     gw_config = ConfigGWRequest_sym('')
-                     gw_config._config_gw(vn_id, True)
-              elif exp_type == ExpType.sym:
-                     gw_config = ConfigGWRequest_sym(log_file_pref + "-sym.log")
-                     gw_config._config_gw(vn_id, False)
-              elif exp_type == ExpType.asym:
-                     gw_config = ConfigGWRequest_sym(log_file_pref + "-asym.log")
-                     gw_config._config_gw(vn_id, True)
-              elif exp_type == ExpType.opt:
-                     gw_config = ConfigGWRequest_opt(log_file_pref + "-opt.log")
-                     gw_config._config_gw(vn_id)
-
 
 
        def _start_gw_log(self, IP, dump_file_pref):
@@ -235,25 +221,37 @@ class VnMigrateExp:
 
        # start migration: copy the rules from old switches to new switches
        def start_migration(self):
+              log.info('start copying flow tables...')
 
-         log.info('start copying flow tables...')
+              for connection in core.openflow._connections.values():
+                     if connection.dpid == ovs1_dpid or connection.dpid == ovs2_dpid or connection.dpid == ovs3_dpid:
+                            connection.send(of.ofp_stats_request(body=of.ofp_flow_stats_request()))
+                            log.debug("Sent %i flow/port stats request(s)", len(core.openflow._connections))
 
-         for connection in core.openflow._connections.values():
-           if connection.dpid == ovs1_dpid or connection.dpid == ovs2_dpid or connection.dpid == ovs3_dpid:
-             connection.send(of.ofp_stats_request(body=of.ofp_flow_stats_request()))
-             log.debug("Sent %i flow/port stats request(s)", len(core.openflow._connections))
+                            # send barrier message to ensure all flows has been installed
+                            connection.send(of.ofp_barrier_request(xid=copy_barrier_id))
+                            connection.addListenerByName("BarrierIn", _handle_flow_ready)
 
-             # send barrier message to ensure all flows has been installed
-             connection.send(of.ofp_barrier_request(xid=copy_barrier_id))
-             connection.addListenerByName("BarrierIn", _handle_flow_ready)
-
-             global barrier_count
-             barrier_count += 1
+                            global barrier_count
+                            barrier_count += 1
 
 
-def _config_gateway(vn_id, log_file):
-      gw_config = ConfigGWRequest_sym(log_file)
-      gw_config._config_gw(vn_id, True)
+
+def _config_gateway(vn_id, exp_type, log_file_pref):
+       if exp_type == ExpType.base:
+              gw_config = ConfigGWRequest_sym('')
+              gw_config._config_gw(vn_id, True)
+       elif exp_type == ExpType.sym:
+              gw_config = ConfigGWRequest_sym(log_file_pref + "-sym.log")
+              gw_config._config_gw(vn_id, False)
+       elif exp_type == ExpType.asym:
+              gw_config = ConfigGWRequest_sym(log_file_pref + "-asym.log")
+              gw_config._config_gw(vn_id, True)
+       elif exp_type == ExpType.opt:
+              gw_config = ConfigGWRequest_opt(log_file_pref + "-opt.log")
+              gw_config._config_gw(vn_id)
+
+
 
 # handler to display flow statistics received in JSON format
 # structure of event.stats is defined by ofp_flow_stats()
@@ -314,12 +312,16 @@ def _handle_flow_ready(event):
         barrier_count -= 1
 
         if barrier_count <= 0:
-              log.info("Start migration...")
+               time.sleep(1)
+               log.info("Start migration...")
 
-              log.info('install rules on gw to redirect traffic')
-              _config_gateway(2, '')
+               log.info('install rules on gw to redirect traffic')
+               global Exp_type
+               global Ctrl_log_file_pref
+               print 'gw in vn2 ready:'
+               _config_gateway(2, Exp_type, Ctrl_log_file_pref)
 
-              barrier_count = 0
+               barrier_count = 0
 
 
 def _flow_stats_to_flow_mod (flow, port_dict):
